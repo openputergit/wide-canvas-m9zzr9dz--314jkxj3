@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Memo - Neubrutalism Logout</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        .neubrutalism {
+            background: #fff;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0px #000;
+            transition: all 0.2s ease;
+        }
+        
+        .neubrutalism:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px #000;
+        }
+
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-yellow-100" x-data="app()">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-md mx-auto">
+            <!-- Loading State -->
+            <div x-show="loading" class="flex justify-center items-center my-8">
+                <i class="bi bi-arrow-repeat loading text-4xl"></i>
+            </div>
+
+            <!-- Error Message -->
+            <div x-show="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 neubrutalism" role="alert">
+                <p x-text="error"></p>
+            </div>
+
+            <!-- Success Message -->
+            <div x-show="success" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 neubrutalism" role="alert">
+                <p x-text="success"></p>
+            </div>
+
+            <!-- Logged In State -->
+            <div x-show="user" class="text-center">
+                <p class="text-xl mb-4">Currently logged in as: <span x-text="user.email" class="font-bold"></span></p>
+                <button 
+                    @click="logout"
+                    class="neubrutalism bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 text-lg rounded-lg"
+                >
+                    Log Out
+                </button>
+            </div>
+
+            <!-- Logged Out State -->
+            <div x-show="!user" class="text-center">
+                <p class="text-xl mb-4">You have been logged out successfully!</p>
+                <a 
+                    href="/login"
+                    class="neubrutalism inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 text-lg rounded-lg"
+                >
+                    Return to Login
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                user: null,
+                loading: false,
+                error: null,
+                success: null,
+
+                init() {
+                    // Initialize Firebase
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyBDlVrLaz4jBfHMF_jWDKRi5VXXIrh7Nto",
+                        authDomain: "smart-memo-640df.firebaseapp.com",
+                        projectId: "smart-memo-640df",
+                        storageBucket: "smart-memo-640df.firebasestorage.app",
+                        messagingSenderId: "1001537126776",
+                        appId: "1:1001537126776:web:2fc6a636d22259491e088d",
+                        measurementId: "G-JW03DJE7XF"
+                    };
+
+                    firebase.initializeApp(firebaseConfig);
+
+                    // Check authentication state
+                    firebase.auth().onAuthStateChanged((user) => {
+                        this.user = user;
+                    });
+                },
+
+                async logout() {
+                    this.loading = true;
+                    this.error = null;
+                    this.success = null;
+
+                    try {
+                        await firebase.auth().signOut();
+                        this.success = "Logged out successfully!";
+                        
+                        // Clear any stored user data
+                        localStorage.removeItem('userData');
+                        sessionStorage.clear();
+                        
+                        // Optional: Clear any Firebase cached data
+                        await firebase.firestore().clearPersistence();
+                    } catch (error) {
+                        console.error("Logout error:", error);
+                        this.error = "Failed to log out. Please try again.";
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
